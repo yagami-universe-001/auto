@@ -1,5 +1,5 @@
 import logging, asyncio, re
-from uvloop import install
+from uvloop import install, new_event_loop
 from asyncio import Lock
 from socket import setdefaulttimeout
 from faulthandler import enable as faulthandler_enable
@@ -17,12 +17,16 @@ from time import time
 from bot.helper.extra.help_string import *
 
 faulthandler_enable()
+
+# Install uvloop and create event loop BEFORE any async operations
 install()
+loop = new_event_loop()
+asyncio.set_event_loop(loop)
+
 setdefaulttimeout(600)
 getLogger("pymongo").setLevel(ERROR)
 getLogger("httpx").setLevel(ERROR)
 bot_start_time = time()
-
 
 # Global variable
 user_data = {}
@@ -34,7 +38,6 @@ HOSTING_SERVER = None
 skip_iron_ids = {}
 is_indexing_active = False
 
-
 queue_dict_lock = Lock()
 
 def validate_and_format_url(url):
@@ -43,7 +46,7 @@ def validate_and_format_url(url):
         # Regex for validating IPv4 address and port
         ipv4_pattern = r'^(http://)(\d{1,3}\.){3}\d{1,3}:\d{1,5}/?$'
         match = re.match(ipv4_pattern, url)
-        
+
         if match:
             # If it matches, ensure it ends with a '/'
             if not url.endswith('/'):
@@ -51,12 +54,12 @@ def validate_and_format_url(url):
             return True, url
         else:
             return False, "Error: Invalid HTTP URL. Must be in the format http://<IPv4>:<PORT>/"
-    
+
     elif url.startswith("https://"):
         # Regex for validating the general https URL
         https_pattern = r'^(https://[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(:\d{1,5})?)/?$'
         match = re.match(https_pattern, url)
-        
+
         if match:
             # If it matches, ensure it ends with a '/'
             if not url.endswith('/'):
@@ -64,7 +67,7 @@ def validate_and_format_url(url):
             return True, str(url)
         else:
             return False, "Error: Invalid HTTPS URL."
-    
+
     return False, "Error: URL must start with http:// or https://"
 
 # Initialize colorama for cross-platform support
@@ -88,7 +91,7 @@ class ColorFormatter(logging.Formatter):
 
 # Logging Configuration
 basicConfig(
-    format="[%(asctime)s] [%(levelname)s] - %(message)s",  # Add [%(filename)s:%(lineno)d] for debugging
+    format="[%(asctime)s] [%(levelname)s] - %(message)s",
     datefmt="%d-%b-%y %I:%M:%S %p",
     level=INFO,
     handlers=[
@@ -160,8 +163,6 @@ else:
 
 FILES_DATABASE_URL = environ.get("FILES_DATABASE_URL", "")
 if len(FILES_DATABASE_URL) == 0:
-    #log_error("FILES_DATABASE_URL variable is missing! Exiting now")
-    #exit(1)
     FILES_DATABASE_URL = DATABASE_URL
 
 OWNER_ID = environ.get('OWNER_ID', '')
@@ -230,31 +231,20 @@ def irontgClient(*args, **kwargs):
 
 IS_PREMIUM_USER = False
 user_bot = ''
-USER_SESSION_STRING = environ.get('USER_SESSION_STRING', '')
-if len(USER_SESSION_STRING) != 0:
-    log_info("Creating client from USER_SESSION_STRING")
-    try:
-        user_bot = irontgClient('user', TELEGRAM_API, TELEGRAM_HASH, session_string=USER_SESSION_STRING,
-                        parse_mode=enums.ParseMode.HTML, no_updates=True).start()
-        IS_PREMIUM_USER = user_bot.me.is_premium
-    except Exception as e:
-        log_error(f"Failed making client from USER_SESSION_STRING : {e}")
-        user_bot = ''
-
 FSUB_IDS = environ.get('FSUB_IDS', '')
 if len(FSUB_IDS) == 0:
     FSUB_IDS = ''
 
-OWNER_CONTACT_LNK = environ.get("OWNER_CONTACT_LNK", "") #owner contact link for user
+OWNER_CONTACT_LNK = environ.get("OWNER_CONTACT_LNK", "")
 if len(OWNER_CONTACT_LNK) == 0:
     OWNER_CONTACT_LNK = "https://t.me/ContactownerHUB4VF_bot"
 
-MAIN_CHNL_USRNM = environ.get("MAIN_CHNL_USRNM", "") # your main channel username without @
+MAIN_CHNL_USRNM = environ.get("MAIN_CHNL_USRNM", "")
 if MAIN_CHNL_USRNM == 0:
     LOGGER.warning("Update MAIN_CHNL_USRNM Variable")
     MAIN_CHNL_USRNM = 'HUB4VF'
 
-UPDT_BTN_URL = environ.get('UPDT_BTN_URL', '') #if you set url then bot will add update button with file else no button generate
+UPDT_BTN_URL = environ.get('UPDT_BTN_URL', '')
 
 REPO_URL = environ.get("REPO_URL", "")
 if len(REPO_URL) == 0:
@@ -266,8 +256,9 @@ else:
     else:
         LOGGER.warning("REPO_URL is Invalid, using defult REPO_URL")
         REPO_URL = "https://github.com/"
+
 ############################################################
-            # Image Vlaues
+            # Image Values
 ############################################################
 
 START_PICS = environ.get('START_PICS', '')
@@ -280,15 +271,7 @@ if len(SPELL_IMG) == 0:
     SPELL_IMG = "https://jpcdn.it/img/e6680b19146911fafe31587395f7ae4b.jpg"
 
 ############################################################
-            # Image Vlaues
-############################################################
-
-
-
-
-
-############################################################
-            # Bool Vlaues
+            # Bool Values
 ############################################################
 
 USE_CAPTION_FILTER = environ.get("USE_CAPTION_FILTER", "True")
@@ -311,89 +294,75 @@ REQ_JOIN_FSUB = REQ_JOIN_FSUB.lower() == 'true'
 
 FILE_SECURE_MODE = environ.get("FILE_SECURE_MODE", "False")
 FILE_SECURE_MODE = FILE_SECURE_MODE.lower() == 'true'
-############################################################
-            # Bool Vlaues
-############################################################
-
-
-
 
 ############################################################
-            # Text Formate Vlaues
+            # Text Format Values
 ############################################################
 
 START_TEXT = environ.get("START_TEXT", "")
 if len(START_TEXT) == 0:
     START_TEXT = IRON_START_TEXT
 
-
 RESULT_TEXT = environ.get("RESULT_TEXT", "")
 if len(RESULT_TEXT) == 0:
     RESULT_TEXT = IRON_RESULT_TEXT
-
 
 CUSTOM_FILE_CAPTION = environ.get("CUSTOM_FILE_CAPTION", "")
 if len(CUSTOM_FILE_CAPTION) == 0:
     CUSTOM_FILE_CAPTION = IRON_CUSTOM_FILE_CAPTION
 
-
 IMDB_TEMPLATE_TXT = environ.get("IMDB_TEMPLATE_TXT", "")
 if len(IMDB_TEMPLATE_TXT) == 0:
-    IMDB_TEMPLATE_TXT = IRON_IMDB_TEMPLATE_TXT 
-
+    IMDB_TEMPLATE_TXT = IRON_IMDB_TEMPLATE_TXT
 
 ALRT_TXT = environ.get("ALRT_TXT", "")
 if len(ALRT_TXT) == 0:
-    ALRT_TXT = IRON_ALRT_TXT 
-
+    ALRT_TXT = IRON_ALRT_TXT
 
 ABOUT_TEXT = environ.get("ABOUT_TEXT", "")
 if len(ABOUT_TEXT) == 0:
-    ABOUT_TEXT = IRON_ABOUT_TEXT 
+    ABOUT_TEXT = IRON_ABOUT_TEXT
 
 CHK_MOV_ALRT = environ.get("CHK_MOV_ALRT", "")
 if len(CHK_MOV_ALRT) == 0:
-    CHK_MOV_ALRT = IRON_CHK_MOV_ALRT 
+    CHK_MOV_ALRT = IRON_CHK_MOV_ALRT
 
 CUDNT_FND = environ.get("CUDNT_FND", "")
 if len(CUDNT_FND) == 0:
-    CUDNT_FND = IRON_CUDNT_FND 
+    CUDNT_FND = IRON_CUDNT_FND
 
 FILE_NOT_FOUND = environ.get("FILE_NOT_FOUND", "")
 if len(FILE_NOT_FOUND) == 0:
-    FILE_NOT_FOUND =  IRON_FILE_NOT_FOUND 
+    FILE_NOT_FOUND =  IRON_FILE_NOT_FOUND
 
 OLD_ALRT_TXT = environ.get("OLD_ALRT_TXT", "")
 if len(OLD_ALRT_TXT) == 0:
-    OLD_ALRT_TXT = IRON_OLD_ALRT_TXT 
+    OLD_ALRT_TXT = IRON_OLD_ALRT_TXT
 
 NORSLTS = environ.get("NORSLTS", "")
 if len(NORSLTS) == 0:
-    NORSLTS = IRON_NORSLTS 
-
+    NORSLTS = IRON_NORSLTS
 
 MOV_NT_FND = environ.get("MOV_NT_FND", "")
 if len(MOV_NT_FND) == 0:
-    MOV_NT_FND = IRON_MOV_NT_FND 
+    MOV_NT_FND = IRON_MOV_NT_FND
 
 DISCLAIMER_TXT = environ.get('DISCLAIMER_TXT', "")
 if len(DISCLAIMER_TXT) == 0:
-    DISCLAIMER_TXT = IRON_DISCLAIMER_TXT 
+    DISCLAIMER_TXT = IRON_DISCLAIMER_TXT
 
 SOURCE_TXT = environ.get("SOURCE_TXT", "")
 if len(SOURCE_TXT) == 0:
-    SOURCE_TXT = IRON_SOURCE_TXT 
+    SOURCE_TXT = IRON_SOURCE_TXT
 
 HELP_TXT = environ.get("HELP_TXT", "")
 if len(HELP_TXT) == 0:
-    HELP_TXT = IRON_HELP_TXT 
+    HELP_TXT = IRON_HELP_TXT
 
 ADMIN_CMD_TXT = environ.get("ADMIN_CMD_TXT", "")
 if len(ADMIN_CMD_TXT) == 0:
-    ADMIN_CMD_TXT = IRON_ADMIN_CMD_TXT 
-############################################################
-             # Text Formate Vlaues
-############################################################
+    ADMIN_CMD_TXT = IRON_ADMIN_CMD_TXT
+
 MAX_LIST_ELM = environ.get("MAX_LIST_ELM", "10")
 if len(MAX_LIST_ELM) == 0:
     MAX_LIST_ELM = None
@@ -419,13 +388,13 @@ USENEWINVTLINKS = USENEWINVTLINKS.lower() == 'true'
 if REQ_JOIN_FSUB == False:
     USENEWINVTLINKS = False
 
-AUTODELICMINGUSERMSG = environ.get("AUTODELICMINGUSERMSG", "True") # auto delete user query message make on or off
+AUTODELICMINGUSERMSG = environ.get("AUTODELICMINGUSERMSG", "True")
 AUTODELICMINGUSERMSG = AUTODELICMINGUSERMSG.lower() == 'true'
 
-AUTO_DEL_FILTER_RESULT_MSG = environ.get("AUTO_DEL_FILTER_RESULT_MSG", "True")  # auto delete bot auto_filter msg on or off
+AUTO_DEL_FILTER_RESULT_MSG = environ.get("AUTO_DEL_FILTER_RESULT_MSG", "True")
 AUTO_DEL_FILTER_RESULT_MSG = AUTO_DEL_FILTER_RESULT_MSG.lower() == 'true'
 
-AUTO_DEL_FILTER_RESULT_MSG_TIMEOUT = environ.get("AUTO_DEL_FILTER_RESULT_MSG_TIMEOUT", "") # auto delete bot auto_filter msg in seconds
+AUTO_DEL_FILTER_RESULT_MSG_TIMEOUT = environ.get("AUTO_DEL_FILTER_RESULT_MSG_TIMEOUT", "")
 if len(AUTO_DEL_FILTER_RESULT_MSG_TIMEOUT) == 0:
     AUTO_DEL_FILTER_RESULT_MSG_TIMEOUT = 300
 else:
@@ -434,25 +403,21 @@ else:
 AUTO_FILE_DELETE_MODE = environ.get("AUTO_FILE_DELETE_MODE", "True")
 AUTO_FILE_DELETE_MODE = AUTO_FILE_DELETE_MODE.lower() == 'true'
 
-
-AUTO_FILE_DELETE_MODE_TIMEOUT = environ.get("AUTO_FILE_DELETE_MODE_TIMEOUT", "") 
+AUTO_FILE_DELETE_MODE_TIMEOUT = environ.get("AUTO_FILE_DELETE_MODE_TIMEOUT", "")
 if len(AUTO_FILE_DELETE_MODE_TIMEOUT) == 0:
     AUTO_FILE_DELETE_MODE_TIMEOUT = 300
-else: 
+else:
     AUTO_FILE_DELETE_MODE_TIMEOUT = int(AUTO_FILE_DELETE_MODE_TIMEOUT) if AUTO_FILE_DELETE_MODE_TIMEOUT.isdigit() else 300
 
 def is_number(value):
     try:
-        # Try converting to an int first
         int_value = int(value)
         return 'int'
     except ValueError:
         try:
-            # If int conversion fails, try converting to a float
             float_value = float(value)
             return 'float'
         except ValueError:
-            # If both conversions fail, it's invalid
             return 'invalid'
 
 TOKEN_TIMEOUT = environ.get("TOKEN_TIMEOUT", "")
@@ -462,7 +427,7 @@ SHORT_URL_API = environ.get("SHORT_URL_API", "")
 if len(SHORT_URL_API) == 0:
     SHORT_URL_API = ''
 
-
+USER_SESSION_STRING = environ.get('USER_SESSION_STRING', '')
 
 ############################################################
 ##################### ADVACE CONFIG  #######################
@@ -524,21 +489,51 @@ config_dict = {
     'UPDT_BTN_URL': UPDT_BTN_URL,
 }
 
-log_info("Creating client from BOT_TOKEN")
+bot = None
+bot_loop = None
+bot_name = None
+scheduler = None
 
-try:
-    bot = irontgClient(
-        'bot', 
-        TELEGRAM_API, 
-        TELEGRAM_HASH, 
-        bot_token=BOT_TOKEN, 
+async def initialize_bot():
+    global bot, bot_loop, bot_name, scheduler, IS_PREMIUM_USER, user_bot
+
+    if len(USER_SESSION_STRING) != 0:
+        log_info("Creating client from USER_SESSION_STRING")
+        try:
+            user_bot_instance = irontgClient(
+                'user',
+                TELEGRAM_API,
+                TELEGRAM_HASH,
+                session_string=USER_SESSION_STRING,
+                parse_mode=enums.ParseMode.HTML,
+                no_updates=True
+            )
+            await user_bot_instance.start()
+            user_bot = user_bot_instance
+            IS_PREMIUM_USER = user_bot.me.is_premium
+        except Exception as e:
+            log_error(f"Failed making client from USER_SESSION_STRING: {e}")
+            user_bot = ''
+
+    log_info("Creating client from BOT_TOKEN")
+
+    bot_instance = irontgClient(
+        'bot',
+        TELEGRAM_API,
+        TELEGRAM_HASH,
+        bot_token=BOT_TOKEN,
         workers=1000
     )
-    bot.start()
-except FloodWait as e:
-    LOGGER.error(f"FloodWait triggered: Must wait {e.value} seconds.")
-    asyncio.sleep(e.value)  # Wait for the specified duration
-    bot.start()
-bot_loop = bot.loop
-bot_name = bot.me.username
-scheduler = AsyncIOScheduler(timezone=str(get_localzone()), event_loop=bot_loop)
+
+    try:
+        await bot_instance.start()
+    except FloodWait as e:
+        LOGGER.error(f"FloodWait triggered: Must wait {e.value} seconds.")
+        await asyncio.sleep(e.value)
+        await bot_instance.start()
+
+    bot = bot_instance
+    bot_loop = asyncio.get_running_loop()
+    bot.loop = bot_loop
+    bot_name = bot.me.username
+    scheduler = AsyncIOScheduler(timezone=str(get_localzone()), event_loop=bot_loop)
