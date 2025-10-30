@@ -43,7 +43,7 @@ def validate_and_format_url(url):
         # Regex for validating IPv4 address and port
         ipv4_pattern = r'^(http://)(\d{1,3}\.){3}\d{1,3}:\d{1,5}/?$'
         match = re.match(ipv4_pattern, url)
-        
+
         if match:
             # If it matches, ensure it ends with a '/'
             if not url.endswith('/'):
@@ -51,12 +51,12 @@ def validate_and_format_url(url):
             return True, url
         else:
             return False, "Error: Invalid HTTP URL. Must be in the format http://<IPv4>:<PORT>/"
-    
+
     elif url.startswith("https://"):
         # Regex for validating the general https URL
         https_pattern = r'^(https://[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(:\d{1,5})?)/?$'
         match = re.match(https_pattern, url)
-        
+
         if match:
             # If it matches, ensure it ends with a '/'
             if not url.endswith('/'):
@@ -64,7 +64,7 @@ def validate_and_format_url(url):
             return True, str(url)
         else:
             return False, "Error: Invalid HTTPS URL."
-    
+
     return False, "Error: URL must start with http:// or https://"
 
 # Initialize colorama for cross-platform support
@@ -230,17 +230,6 @@ def irontgClient(*args, **kwargs):
 
 IS_PREMIUM_USER = False
 user_bot = ''
-USER_SESSION_STRING = environ.get('USER_SESSION_STRING', '')
-if len(USER_SESSION_STRING) != 0:
-    log_info("Creating client from USER_SESSION_STRING")
-    try:
-        user_bot = irontgClient('user', TELEGRAM_API, TELEGRAM_HASH, session_string=USER_SESSION_STRING,
-                        parse_mode=enums.ParseMode.HTML, no_updates=True).start()
-        IS_PREMIUM_USER = user_bot.me.is_premium
-    except Exception as e:
-        log_error(f"Failed making client from USER_SESSION_STRING : {e}")
-        user_bot = ''
-
 FSUB_IDS = environ.get('FSUB_IDS', '')
 if len(FSUB_IDS) == 0:
     FSUB_IDS = ''
@@ -339,58 +328,58 @@ if len(CUSTOM_FILE_CAPTION) == 0:
 
 IMDB_TEMPLATE_TXT = environ.get("IMDB_TEMPLATE_TXT", "")
 if len(IMDB_TEMPLATE_TXT) == 0:
-    IMDB_TEMPLATE_TXT = IRON_IMDB_TEMPLATE_TXT 
+    IMDB_TEMPLATE_TXT = IRON_IMDB_TEMPLATE_TXT
 
 
 ALRT_TXT = environ.get("ALRT_TXT", "")
 if len(ALRT_TXT) == 0:
-    ALRT_TXT = IRON_ALRT_TXT 
+    ALRT_TXT = IRON_ALRT_TXT
 
 
 ABOUT_TEXT = environ.get("ABOUT_TEXT", "")
 if len(ABOUT_TEXT) == 0:
-    ABOUT_TEXT = IRON_ABOUT_TEXT 
+    ABOUT_TEXT = IRON_ABOUT_TEXT
 
 CHK_MOV_ALRT = environ.get("CHK_MOV_ALRT", "")
 if len(CHK_MOV_ALRT) == 0:
-    CHK_MOV_ALRT = IRON_CHK_MOV_ALRT 
+    CHK_MOV_ALRT = IRON_CHK_MOV_ALRT
 
 CUDNT_FND = environ.get("CUDNT_FND", "")
 if len(CUDNT_FND) == 0:
-    CUDNT_FND = IRON_CUDNT_FND 
+    CUDNT_FND = IRON_CUDNT_FND
 
 FILE_NOT_FOUND = environ.get("FILE_NOT_FOUND", "")
 if len(FILE_NOT_FOUND) == 0:
-    FILE_NOT_FOUND =  IRON_FILE_NOT_FOUND 
+    FILE_NOT_FOUND =  IRON_FILE_NOT_FOUND
 
 OLD_ALRT_TXT = environ.get("OLD_ALRT_TXT", "")
 if len(OLD_ALRT_TXT) == 0:
-    OLD_ALRT_TXT = IRON_OLD_ALRT_TXT 
+    OLD_ALRT_TXT = IRON_OLD_ALRT_TXT
 
 NORSLTS = environ.get("NORSLTS", "")
 if len(NORSLTS) == 0:
-    NORSLTS = IRON_NORSLTS 
+    NORSLTS = IRON_NORSLTS
 
 
 MOV_NT_FND = environ.get("MOV_NT_FND", "")
 if len(MOV_NT_FND) == 0:
-    MOV_NT_FND = IRON_MOV_NT_FND 
+    MOV_NT_FND = IRON_MOV_NT_FND
 
 DISCLAIMER_TXT = environ.get('DISCLAIMER_TXT', "")
 if len(DISCLAIMER_TXT) == 0:
-    DISCLAIMER_TXT = IRON_DISCLAIMER_TXT 
+    DISCLAIMER_TXT = IRON_DISCLAIMER_TXT
 
 SOURCE_TXT = environ.get("SOURCE_TXT", "")
 if len(SOURCE_TXT) == 0:
-    SOURCE_TXT = IRON_SOURCE_TXT 
+    SOURCE_TXT = IRON_SOURCE_TXT
 
 HELP_TXT = environ.get("HELP_TXT", "")
 if len(HELP_TXT) == 0:
-    HELP_TXT = IRON_HELP_TXT 
+    HELP_TXT = IRON_HELP_TXT
 
 ADMIN_CMD_TXT = environ.get("ADMIN_CMD_TXT", "")
 if len(ADMIN_CMD_TXT) == 0:
-    ADMIN_CMD_TXT = IRON_ADMIN_CMD_TXT 
+    ADMIN_CMD_TXT = IRON_ADMIN_CMD_TXT
 ############################################################
              # Text Formate Vlaues
 ############################################################
@@ -435,10 +424,10 @@ AUTO_FILE_DELETE_MODE = environ.get("AUTO_FILE_DELETE_MODE", "True")
 AUTO_FILE_DELETE_MODE = AUTO_FILE_DELETE_MODE.lower() == 'true'
 
 
-AUTO_FILE_DELETE_MODE_TIMEOUT = environ.get("AUTO_FILE_DELETE_MODE_TIMEOUT", "") 
+AUTO_FILE_DELETE_MODE_TIMEOUT = environ.get("AUTO_FILE_DELETE_MODE_TIMEOUT", "")
 if len(AUTO_FILE_DELETE_MODE_TIMEOUT) == 0:
     AUTO_FILE_DELETE_MODE_TIMEOUT = 300
-else: 
+else:
     AUTO_FILE_DELETE_MODE_TIMEOUT = int(AUTO_FILE_DELETE_MODE_TIMEOUT) if AUTO_FILE_DELETE_MODE_TIMEOUT.isdigit() else 300
 
 def is_number(value):
@@ -524,21 +513,52 @@ config_dict = {
     'UPDT_BTN_URL': UPDT_BTN_URL,
 }
 
-log_info("Creating client from BOT_TOKEN")
+bot = None
+bot_loop = None
+bot_name = None
+scheduler = None
 
-try:
-    bot = irontgClient(
-        'bot', 
-        TELEGRAM_API, 
-        TELEGRAM_HASH, 
-        bot_token=BOT_TOKEN, 
+async def initialize_bot():
+    global bot, bot_loop, bot_name, scheduler, IS_PREMIUM_USER, user_bot
+
+    USER_SESSION_STRING = environ.get('USER_SESSION_STRING', '')
+    if len(USER_SESSION_STRING) != 0:
+        log_info("Creating client from USER_SESSION_STRING")
+        try:
+            user_bot_instance = irontgClient(
+                'user',
+                TELEGRAM_API,
+                TELEGRAM_HASH,
+                session_string=USER_SESSION_STRING,
+                parse_mode=enums.ParseMode.HTML,
+                no_updates=True
+            )
+            await user_bot_instance.start()
+            user_bot = user_bot_instance
+            IS_PREMIUM_USER = user_bot.me.is_premium
+        except Exception as e:
+            log_error(f"Failed making client from USER_SESSION_STRING: {e}")
+            user_bot = ''
+
+    log_info("Creating client from BOT_TOKEN")
+
+    bot_instance = irontgClient(
+        'bot',
+        TELEGRAM_API,
+        TELEGRAM_HASH,
+        bot_token=BOT_TOKEN,
         workers=1000
     )
-    bot.start()
-except FloodWait as e:
-    LOGGER.error(f"FloodWait triggered: Must wait {e.value} seconds.")
-    asyncio.sleep(e.value)  # Wait for the specified duration
-    bot.start()
-bot_loop = bot.loop
-bot_name = bot.me.username
-scheduler = AsyncIOScheduler(timezone=str(get_localzone()), event_loop=bot_loop)
+
+    try:
+        await bot_instance.start()
+    except FloodWait as e:
+        LOGGER.error(f"FloodWait triggered: Must wait {e.value} seconds.")
+        await asyncio.sleep(e.value)
+        await bot_instance.start()
+
+    bot = bot_instance
+    bot_loop = asyncio.get_running_loop()
+    bot.loop = bot_loop
+    bot_name = bot.me.username
+    scheduler = AsyncIOScheduler(timezone=str(get_localzone()), event_loop=bot_loop)

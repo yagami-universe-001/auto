@@ -14,18 +14,19 @@ from aiohttp import web
 from aiofiles import open as aiopen
 from aiofiles.os import path as aiopath, remove as aioremove
 from bot import (
-    bot, 
+    bot,
     scheduler,
-    LOGGER, 
-    PORT as PORT_CODE, 
-    bot_name, 
+    LOGGER,
+    PORT as PORT_CODE,
+    bot_name,
     bot_start_time,
     HOSTING_SERVER,
     is_indexing_active,
     config_dict,
     user_data,
     DATABASE_URL,
-    validate_and_format_url
+    validate_and_format_url,
+    initialize_bot
 )
 
 from bot.plugins.commands import normal_user_start_cmd, start_file_sender, authorize_user_start_cmd
@@ -34,9 +35,9 @@ from psutil import boot_time, disk_usage, cpu_percent, virtual_memory
 from bot.database.db_handler import DbManager
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.extra.bot_utils import (
-    new_task, 
-    new_thread, 
-    get_readable_file_size, 
+    new_task,
+    new_thread,
+    get_readable_file_size,
     get_readable_time,
     set_commands,
     chnl_check,
@@ -45,11 +46,11 @@ from bot.helper.extra.bot_utils import (
 )
 from bot.helper.extra.telegraph_helper import telegraph
 from bot.helper.telegram_helper.message_utils import (
-    edit_message, 
-    sendFile, 
-    delete_message, 
-    five_minute_del, 
-    send_message, 
+    edit_message,
+    sendFile,
+    delete_message,
+    five_minute_del,
+    send_message,
     one_minute_del
 )
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -97,7 +98,7 @@ async def stats(_, message):
         f"<code>• Free space :</code> {get_readable_file_size(free)}\n"
         f"<code>• Total space:</code> {get_readable_file_size(total)}\n\n"
     )
-    
+
     stats = system_info
 
     reply_message = await send_message(message, stats, photo="Random")
@@ -173,7 +174,7 @@ async def start(client, message):
         i = await send_message(message, "I am alive! just send a name of query, i will find for you.")
         await asyncio.sleep(5)
         await delete_message(i)
-        return 
+        return
     elif len(message.command) > 1 and len(message.command[1]) == 36:
         userid = message.from_user.id
         input_token = message.command[1]
@@ -270,7 +271,7 @@ async def restart(_, message):
     osexecl(executable, executable, "-m", "bot")
 
 
-    
+
 async def detect_hosting_platform():
     """Detect the hosting platform where the script is running."""
     # Check for Heroku
@@ -304,6 +305,7 @@ async def detect_hosting_platform():
 # remove load_plugins(),
 # Main function to start the bot and the web server
 async def main():
+    await initialize_bot()
     await gather(
         cleanup_downloads(),
         restart_notification(),
@@ -347,11 +349,11 @@ async def main():
 
     # Send a start message to your Telegram chat (replace with your actual chat ID)
     await bot.send_message(
-        chat_id=config_dict['LOG_CHANNEL'], 
-        text=f"✅ {bot_name} Bot Started ✅", 
+        chat_id=config_dict['LOG_CHANNEL'],
+        text=f"✅ {bot_name} Bot Started ✅",
         disable_web_page_preview=True
     )
-    
+
     app = web.AppRunner(await web_server())
     await app.setup()
     bind_address = "0.0.0.0"
@@ -373,15 +375,15 @@ async def main():
     LOGGER.info("""
     ██╗  ██╗██╗   ██╗██████╗ ██╗  ██╗██╗   ██╗███████╗
     ██║  ██║██║   ██║██╔══██╗██║  ██║██║   ██║██╔════╝
-    ███████║██║   ██║██████╔╝███████║██║   ██║█████╗  
-    ██╔══██║██║   ██║██╔══██╗╚════██║╚██╗ ██╔╝██╔══╝  
-    ██║  ██║╚██████╔╝██████╔╝     ██║ ╚████╔╝ ██║     
-    ╚═╝  ╚═╝ ╚═════╝ ╚═════╝      ╚═╝  ╚═══╝  ╚═╝     
+    ███████║██║   ██║██████╔╝███████║██║   ██║█████╗
+    ██╔══██║██║   ██║██╔══██╗╚════██║╚██╗ ██╔╝██╔══╝
+    ██║  ██║╚██████╔╝██████╔╝     ██║ ╚████╔╝ ██║
+    ╚═╝  ╚═╝ ╚═════╝ ╚═════╝      ╚═╝  ╚═══╝  ╚═╝
     """)
     LOGGER.info(f"🚀 {bot_name} Bot Started Successfully!")
     LOGGER.info(f"🌍 Running on: \033[1;33m{HOSTING_SERVER}\033[0m")
     while True:
         await asyncio.sleep(3600)  # Keep the server alive for an hour (adjust as needed)
 
-bot.loop.run_until_complete(main())
-bot.loop.run_forever()
+if __name__ == "__main__":
+    asyncio.run(main())
